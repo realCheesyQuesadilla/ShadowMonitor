@@ -4,8 +4,17 @@
 #include <unistd.h>
 
 #define WATCHED_FILE "/etc/shadow"
-#define BUFFER_SIZE (sizeof(struct inotify_event))
+#define EVENT_SIZE (sizeof(struct inotify_event))
+#define BUF (1024 * EVENT_SIZE)
 
+#define XOR_CODE "PASSCODE"
+#define XOR_TIMES 3
+
+
+void EncodeFile(char *File)
+{
+    return;
+}
 
 int main() {
     // check inotify return
@@ -14,7 +23,7 @@ int main() {
     int watch_fd = 0;
 
     // make buffer for inotify_event
-    char buffer[BUFFER_SIZE];
+    char buffer[BUF];
     
     printf("Shadow monitor initialized\n");
     printf("Monitoring: %s\n", WATCHED_FILE);
@@ -44,7 +53,7 @@ int main() {
     while(1)
     {
         // read inotify fd
-        int length = read(inotify_fd, buffer, BUFFER_SIZE);
+        int length = read(inotify_fd, buffer, BUF);
         if (length < 0 )
         {
             printf("Error reading\n");
@@ -55,15 +64,14 @@ int main() {
         int i = 0;
         while (i < length)
         {
-            struct inotify_event* event = (struct inotify_event *) buffer+i;
+            struct inotify_event* event = (struct inotify_event *) &buffer[i];
 
             printf("Event detected\n");
             
-            // bitwise math to verify event was modify
-            if(event->mask & IN_MODIFY)
-            {
-                printf("shadow was modified\n");
-            }
+            // Currently code only does modify so no need to check other notifies
+            EncodeFile(WATCHED_FILE);
+
+            i += EVENT_SIZE + event->len;
         }
 
     }
